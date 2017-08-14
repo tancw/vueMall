@@ -1,0 +1,149 @@
+<template>
+  <div class="slide-show" @mouseover="pauseSlide()" @mouseout="runSlide()">
+    <div class="slide-img" >
+      <a :href="slides[nowIndex].href">
+        <transition name="slide-trans-old">
+          <img v-if="!isShow" :src="slides[nowIndex].src" >
+        </transition>
+        <transition name="slide-trans">
+          <img v-if="isShow" :src="slides[nowIndex].src" >
+        </transition>
+      </a>
+    </div>
+    <h2>{{slides[nowIndex].title}}</h2>
+    <ul class="slide-pages">
+      <li @click="goto(prevIndex)">&lt;</li>
+      <li v-for="(item, index) in slides" :key="item.src" @click="goto(index)">
+        <a :class="{on: index === nowIndex}">{{index + 1}}</a>
+      </li>
+      <li @click="goto(nextIndex)">&gt;</li>
+    </ul>
+  </div>
+</template>
+
+<script scoped>
+export default {
+  props: {
+    slides: {
+      type: Array,
+      default: []
+    },
+    slideTime: {
+      type: Number,
+      default: 1000
+    }
+  },
+  data () {
+    return {
+      nowIndex: 0,
+      isShow: true
+    }
+  },
+  computed: {
+    prevIndex () {
+      if (this.nowIndex === 0) {
+        return this.slides.length - 1
+      } else {
+        return this.nowIndex - 1
+      }
+    },
+    nextIndex () {
+      if (this.nowIndex === this.slides.length - 1) {
+        return 0
+      } else {
+        return this.nowIndex + 1
+      }
+    }
+  },
+  methods: {
+    goto (index) {
+      this.isShow = false
+      setTimeout(() => {
+        this.isShow = true
+        this.nowIndex = index
+        this.$emit('onSlide', this.slideTime)
+      }, 10)
+    },
+    runSlide () {
+      this.invId = setInterval(() => {
+        this.goto(this.nextIndex)
+      }, this.slideTime)
+    },
+    pauseSlide () {
+      clearInterval(this.invId)
+    }
+  },
+  mounted () {
+    this.runSlide()
+  }
+}
+</script>
+
+<style scoped>
+.slide-show {
+  position: relative;
+  margin: 15px 15px 15px 0;
+  width: 900px;
+  height: 500px;
+  overflow: hidden;
+}
+
+.slide-show h2 {
+  position: absolute;
+  width: 100%;
+  height: 30px;
+  color: #fff;
+  background: #000;
+  opacity: .5;
+  bottom: 0;
+  text-align: left;
+  line-height: 30px;
+  padding-left: 15px;
+}
+
+.slide-img {
+  width: 100%;
+}
+
+.slide-img img {
+  position: absolute;
+  width: 100%;
+  top: 0;
+}
+
+.slide-pages {
+  position: absolute;
+  bottom: 8px;
+  right: 15px;
+}
+
+.slide-pages li {
+  display: inline-block;
+  padding: 0 10px;
+  cursor: pointer;
+  text-align: center;
+  line-height: 12px;
+  color: #fff;
+}
+
+.slide-pages li .on {
+  display: block;
+  box-shadow: 0 0 2px 2px #fff ;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.slide-trans-enter-active{
+  transition: all .5s;
+}
+.slide-trans-enter{
+  transform: translateX(900px);
+}
+.slide-trans-old-leave-active{
+  transition: all .5s;
+}
+.slide-trans-old-leave-to{
+  transform: translateX(-900px);
+}
+</style>
